@@ -1,0 +1,26 @@
+*Jacob Lee
+*11/4/2017
+*empArray<1,i>=employees for specified department
+
+    SUBROUTINE GETEMPDEPT(dept,empArray)
+    empArray=""
+    i=1
+    OPEN 'employees' TO F.EMPLOYEES ELSE
+        ABORT 201, 'employees'
+    END
+
+    query=""
+    query:="SSELECT EMPLOYEES WITH 3="
+    query:=dept
+    EXECUTE query
+    CRT@(-1)
+
+    LOOP WHILE READNEXT ID DO
+        READ R.EMPLOYEES FROM F.EMPLOYEES,ID ELSE
+            R.EMPLOYEES=''
+        END
+        empArray<i>=R.EMPLOYEES<1>
+        i=i+1
+    REPEAT
+    CLOSE F.EMPLOYEES 
+    RETURN

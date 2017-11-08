@@ -1,0 +1,26 @@
+*Jacob Lee
+*11/4/2017
+
+    SUBROUTINE GETEMP(empID,dataArray)
+    dataArray=""
+
+    OPEN 'employees' TO F.EMPLOYEES ELSE
+        ABORT 201, 'employees'
+    END
+
+    query=''
+    query:="SELECT EMPLOYEES WITH 1="
+    query:=empID
+    EXECUTE query
+
+    LOOP WHILE READNEXT ID DO
+        READ R.EMPLOYEES FROM F.EMPLOYEES,ID ELSE
+            R.EMPLOYEES=''
+        END
+        dataArray<1,1>=R.EMPLOYEES<2,1>
+        dataArray<1,2>=R.EMPLOYEES<2,2>
+        dataArray<2,1>=R.EMPLOYEES<4,1>
+        dataArray<2,2>=R.EMPLOYEES<4,2>
+    REPEAT
+    CLOSE F.EMPLOYEES
+    RETURN

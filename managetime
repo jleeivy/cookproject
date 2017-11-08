@@ -1,0 +1,56 @@
+*Jacob Lee
+*11/1/2017
+
+    SUBROUTINE MANAGETIME(dept)
+    CALL GETEMPDEPT(dept,empArray)
+    GOSUB DATAARRAY
+    dataArray=""
+
+    xcoord=2
+    ycoord=2
+    PROMPT ""
+
+    GOSUB MENU
+
+    RETURN
+
+MENU:
+    LOOP
+        CRT@(-1)
+        menu=""
+        GOSUB PAINTMENU
+        GOSUB PAINTDATA
+        INPUT@(xcoord+20,ycoord+0) menu,1
+        menu=UPCASE(menu)
+        PRINT@(xcoord+20,ycoord+0):menu
+        BEGIN CASE
+        CASE 1
+        END CASE
+    UNTIL menu="X" DO
+    REPEAT
+    RETURN
+
+PAINTMENU:
+    PRINT@(xcoord,ycoord+0):"Select an option: "
+    PRINT@(xcoord,ycoord+1):"1) Display single employee"
+    PRINT@(xcoord,ycoord+3):"X) Exit"
+    RETURN
+
+DATAARRAY:
+    max=DCOUNT(empArray,CHAR(254))
+    FOR i=1 TO max
+        CALL GETEMP(empArray<i>,dataArray)
+        empArray<i,2,1>=dataArray<1,1>
+        empArray<i,2,2>=dataArray<1,2>
+        empArray<i,3,1>=dataArray<2,1>
+        empArray<i,3,2>=dataArray<2,2> 
+    NEXT i
+    RETURN
+
+PAINTDATA:
+    max=DCOUNT(empArray,CHAR(254))
+    PRINT@(xcoord,ycoord+9):"ID"'L#10':"Last"'L#10':"First"'L#10':"Start"'L#10':"Stop"'L#10'
+    FOR i=1 TO max
+        PRINT@(xcoord,ycoord+9+i):empArray<i,1>'L#10':empArray<i,2,2>'L#10':empArray<i,2,1>'L#10':OCONV(empArray<i,3,1>,"MTH")'L#10':OCONV(empArray<i,3,2>,"MTH")'L#10'
+    NEXT i  
+    RETURN 
