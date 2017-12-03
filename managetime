@@ -1,29 +1,50 @@
 *Jacob Lee
-*11/1/2017
+*11/1/2017 created
+*12/1/2017 last edited
 
     SUBROUTINE MANAGETIME(dept)
     CALL GETEMPDEPT(dept,empArray)
     GOSUB DATAARRAY
     dataArray=""
+    weekArray=""
+    empID=""
+    R.TIMESHEET=""
+    time=""
 
     xcoord=2
     ycoord=2
     PROMPT ""
 
+    CRT@(-1)
+    GOSUB PAINTMENU
+    GOSUB SELECTEMP
+    day=DATE()
+    GOSUB WEEK
     GOSUB MENU
 
+    CRT@(-1)
     RETURN
 
 MENU:
     LOOP
-        CRT@(-1)
         menu=""
         GOSUB PAINTMENU
-        GOSUB PAINTDATA
         INPUT@(xcoord+20,ycoord+0) menu,1
         menu=UPCASE(menu)
         PRINT@(xcoord+20,ycoord+0):menu
         BEGIN CASE
+        CASE menu=1 ;*select employee id
+            GOSUB SELECTEMP
+        CASE menu=2 ;*display last complete week
+            day=DATE()
+            day=day-7
+            GOSUB WEEK
+        CASE menu=3 ;*display week as specified by date
+            trigger=1         ;*variable allows me to reuse existing code
+            GOSUB SELECTDAY
+        CASE menu=4 ;*edit employee clockin/out timesheet data for given date
+            trigger=0         ;*variable allows me to reused existing code
+            GOSUB SELECTDAY
         CASE 1
         END CASE
     UNTIL menu="X" DO
@@ -31,9 +52,31 @@ MENU:
     RETURN
 
 PAINTMENU:
+    CALL GETEMPDEPT(dept,empArray)
+    GOSUB DATAARRAY
+    CRT@(-1)
     PRINT@(xcoord,ycoord+0):"Select an option: "
-    PRINT@(xcoord,ycoord+1):"1) Display single employee"
-    PRINT@(xcoord,ycoord+3):"X) Exit"
+    PRINT@(xcoord,ycoord+1):"1) Select Employee"
+    PRINT@(xcoord,ycoord+2):"2) Display Last Week"
+    PRINT@(xcoord,ycoord+3):"3) Display Specific Week"
+    PRINT@(xcoord,ycoord+4):"4) Edit Day"
+    PRINT@(xcoord,ycoord+5):"X) Exit"
+
+    PRINT@(xcoord+75,ycoord+0):"Currently Selected Employee: "
+    PRINT@(xcoord+105,ycoord+0):empID
+    GOSUB PAINTWEEK
+    GOSUB PAINTDATA
+    RETURN
+
+PAINTWEEK:
+    PRINT@(xcoord+75,ycoord+2): "MONTH:    ":OCONV(weekArray<1,1>,"DMA")        ;*include "Total Hours Worked"
+    PRINT@(xcoord+75,ycoord+4): OCONV(weekArray<1,1>,"DWA")'L#10':OCONV(weekArray<1,1>,"DD")'L#10':weekArray<1,2>
+    PRINT@(xcoord+75,ycoord+6): OCONV(weekArray<2,1>,"DWA")'L#10':OCONV(weekArray<2,1>,"DD")'L#10':weekArray<2,2>
+    PRINT@(xcoord+75,ycoord+8): OCONV(weekArray<3,1>,"DWA")'L#10':OCONV(weekArray<3,1>,"DD")'L#10':weekArray<3,2>
+    PRINT@(xcoord+75,ycoord+10):OCONV(weekArray<4,1>,"DWA")'L#10':OCONV(weekArray<4,1>,"DD")'L#10':weekArray<4,2>
+    PRINT@(xcoord+75,ycoord+12):OCONV(weekArray<5,1>,"DWA")'L#10':OCONV(weekArray<5,1>,"DD")'L#10':weekArray<5,2>
+    PRINT@(xcoord+75,ycoord+14):OCONV(weekArray<6,1>,"DWA")'L#10':OCONV(weekArray<6,1>,"DD")'L#10':weekArray<6,2>
+    PRINT@(xcoord+75,ycoord+16):OCONV(weekArray<7,1>,"DWA")'L#10':OCONV(weekArray<7,1>,"DD")'L#10':weekArray<7,2>
     RETURN
 
 DATAARRAY:
@@ -43,14 +86,335 @@ DATAARRAY:
         empArray<i,2,1>=dataArray<1,1>
         empArray<i,2,2>=dataArray<1,2>
         empArray<i,3,1>=dataArray<2,1>
-        empArray<i,3,2>=dataArray<2,2> 
+        empArray<i,3,2>=dataArray<2,2>
     NEXT i
     RETURN
 
 PAINTDATA:
     max=DCOUNT(empArray,CHAR(254))
-    PRINT@(xcoord,ycoord+9):"ID"'L#10':"Last"'L#10':"First"'L#10':"Start"'L#10':"Stop"'L#10'
+    PRINT@(xcoord+75,ycoord+25):"ID"'L#10':"Last"'L#10':"First"'L#10':"Start"'L#10':"Stop"'L#10'
     FOR i=1 TO max
-        PRINT@(xcoord,ycoord+9+i):empArray<i,1>'L#10':empArray<i,2,2>'L#10':empArray<i,2,1>'L#10':OCONV(empArray<i,3,1>,"MTH")'L#10':OCONV(empArray<i,3,2>,"MTH")'L#10'
-    NEXT i  
-    RETURN 
+        PRINT@(xcoord+75,ycoord+25+i):empArray<i,1>'L#10':empArray<i,2,2>'L#10':empArray<i,2,1>'L#10':OCONV(empArray<i,3,1>,"MTH")'L#10':OCONV(empArray<i,3,2>,"MTH")'L#10'
+    NEXT i
+    RETURN
+
+SELECTEMP:
+    INPUT@(xcoord+105,ycoord+0) empID,7
+    empID=empID'R%7'
+    RETURN
+
+SELECTDAY:
+    date=""
+    PRINT@(xcoord,ycoord+10):"Enter a date within the week (MM-DD-YY): "
+    INPUT@(xcoord+45,ycoord+10) date,8
+    IF date MATCHES "2N'-'2N'-'2N" THEN
+        day=ICONV(date,"D2")
+        IF trigger=1 THEN
+            GOSUB WEEK
+        END ELSE
+            GOSUB EDIT
+        END
+    END ELSE
+        PRINT@(xcoord,ycoord+11):"Invalid date format"
+        MSLEEP(1000)
+    END
+    RETURN
+
+WEEK:
+    weekArray=""
+    LOOP
+        Name=OCONV(day,"DW")
+    UNTIL Name=7 DO
+        day=day-1
+    REPEAT
+    query=""
+    query:="SSELECT TIMESHEET WITH 1="
+    query:=empID
+    EXECUTE query
+    query=""
+    query:="SSELECT TIMESHEET WITH 2>="
+    query:=day
+    EXECUTE query
+    query=""
+    query:="SSELECT TIMESHEET WITH 2<="
+    query:=day+6
+    EXECUTE query
+    OPEN 'TIMESHEET' TO F.TIMESHEET ELSE
+        ABORT 201, 'TIMESHEET'
+    END
+    j=1
+    LOOP WHILE READNEXT ID DO
+        READ R.TIMESHEET FROM F.TIMESHEET,ID ELSE
+            R.TIMESHEET=''
+        END
+        weekArray<j,1>=R.TIMESHEET<2>   ;*day
+
+        Cap=DCOUNT(R.TIMESHEET<3>,CHAR(253))
+        FOR k=1 TO Cap
+            weekArray<j,2,k>=R.TIMESHEET<3,k>     ;*timein/out
+        NEXT k
+        j=j+1
+    REPEAT
+    CLOSE F.TIMESHEET
+    RETURN
+
+EDIT:
+    editArray=""
+    query=""
+    query:="SSELECT TIMESHEET WITH 1="
+    query:=empID
+    EXECUTE query
+    query=""
+    query:="SSELECT TIMESHEET WITH 2="
+    query:=day
+    EXECUTE query
+    OPEN 'TIMESHEET' TO F.TIMESHEET ELSE
+        ABORT 201, 'TIMESHEET'
+    END
+
+    LOOP WHILE READNEXT ID DO
+        READ R.TIMESHEET FROM F.TIMESHEET,ID ELSE
+            R.TIMESHEET=''
+        END
+        recordID=ID
+    REPEAT
+
+    CRT@(-1)        ;*Clears query nonsense from screen
+    GOSUB PAINTMENU
+    LOOP
+        subMenu=""
+        GOSUB PAINTSUBMENU
+        INPUT@(xcoord+25,ycoord+25) subMenu,1
+        subMenu=UPCASE(subMenu)
+        PRINT@(xcoord+25,ycoord+25):subMenu
+        BEGIN CASE
+        CASE subMenu=1        ;*edit employee id
+            GOSUB EDITEMPID
+        CASE subMenu=2        ;*edit date
+            GOSUB EDITDATE
+        CASE subMenu=3        ;*edit clockin/out
+            GOSUB TIME
+        CASE 1
+        END CASE
+    UNTIL subMenu="X" DO
+    REPEAT
+    CLOSE F.TIMESHEET
+    RETURN
+
+PAINTDAY:
+    PRINT@(xcoord,ycoord+20):"Employee ID"'L#15':"Day"'L#10':"Day"'L#10':"Clockin/out"
+    PRINT@(xcoord,ycoord+21):R.TIMESHEET<1>'L#15':OCONV(R.TIMESHEET<2>,"DWA")'L#10':OCONV(R.TIMESHEET<2>,"DD")'L#10':R.TIMESHEET<3>
+    RETURN
+
+PAINTSUBMENU:
+    GOSUB PAINTMENU
+    GOSUB PAINTDAY
+    PRINT@(xcoord,ycoord+25):"Pick a field to edit: "
+    PRINT@(xcoord,ycoord+26):"1) Employee ID"
+    PRINT@(xcoord,ycoord+27):"2) Date"
+    PRINT@(xcoord,ycoord+28):"3) Change Clockin/out"
+    PRINT@(xcoord,ycoord+29):"X) Return to previous menu"
+    RETURN
+
+EDITEMPID:
+    confirm=""
+    PRINT@(xcoord,ycoord+30):"Enter the new Employee ID: "
+    INPUT@(xcoord+30,ycoord+30) newEmpID,7
+    newEmpID=newEmpID'R%7'
+    PRINT@(xcoord+30,ycoord+30):newEmpID
+    PRINT@(xcoord,ycoord+32):"Confirm change (Y/N)?: "
+    INPUT@(xcoord+30,ycoord+32) confirm,1
+    confirm=UPCASE(confirm)
+    IF confirm="Y" THEN
+        R.TIMESHEET<1>=newEmpID
+        WRITE R.TIMESHEET ON F.TIMESHEET,recordID
+    END
+    RETURN
+
+EDITDATE:
+    confirm=""
+    PRINT@(xcoord,ycoord+30):"Enter the new Date (MM-DD-YY): "
+    INPUT@(xcoord+30,ycoord+30) newDate,8
+    newDate=ICONV(newDate,"D2")
+    PRINT@(xcoord,ycoord+32):"Confirm change (Y/N)?: "
+    INPUT@(xcoord+30,ycoord+32) confirm,1
+    confirm=UPCASE(confirm)
+    IF confirm="Y" THEN
+        R.TIMESHEET<2>=newDate
+        WRITE R.TIMESHEET ON F.TIMESHEET,recordID
+    END
+    RETURN
+
+TIME:
+    editMenu=""
+    LOOP
+        GOSUB PAINTEDITMENU
+        INPUT@(xcoord+30,ycoord+35) editMenu,1
+        editMenu=UPCASE(editMenu)
+        BEGIN CASE
+        CASE editMenu=1       ;*select value to manipulate
+            GOSUB SELECTTIME
+        CASE editMenu=2       ;*insert new value into array
+            GOSUB ADDTIME
+        CASE editMenu=3       ;*delete value from array
+            GOSUB REMOVETIME
+        CASE editMenu=4       ;*change existing value in array
+            GOSUB EDITTIME
+        CASE 1
+        END CASE
+    UNTIL editMenu="X" DO
+    REPEAT
+    RETURN
+
+SELECTTIME:
+    hrs=""
+    mins=""
+    time=""
+    PRINT@(xcoord+40,ycoord+33):"  :  "
+    PRINT@(xcoord,ycoord+33):"Enter time to change (00:00-24:00): "
+    INPUT@(xcoord+40,ycoord+33) hrs,2
+    PRINT@(xcoord+40,ycoord+33):hrs'R%2'
+    INPUT@(xcoord+43,ycoord+33) mins,2
+    PRINT@(xcoord+43,ycoord+33):mins'R%2'
+    BEGIN CASE
+    CASE hrs>24
+*does nothing
+    CASE hrs<0
+*does nothing
+    CASE mins>59
+*does nothing
+    CASE mins<0
+*does nothing
+    CASE 1
+        time:=hrs
+        time:=":"
+        time:=mins
+        time=ICONV(time,"MT")
+    END CASE
+    CRT@(-1)
+    RETURN
+
+ADDTIME:
+    IF time="" THEN
+        vm=-1
+    END ELSE
+        FIND time IN R.TIMESHEET<3> SETTING am,vm ELSE      ;*sets attribute mark (am) and value mark (vm) positions of selected time
+            vm=""
+        END
+    END
+    hrs=""
+    mins=""
+    newTime=""
+    confirm=""
+    PRINT@(xcoord+40,ycoord+42):"  :  "
+    PRINT@(xcoord,ycoord+42):"Enter the new Time (00:00-24:00): "
+    INPUT@(xcoord+40,ycoord+42) hrs,2
+    PRINT@(xcoord+40,ycoord+42):hrs'R%2'
+    INPUT@(xcoord+43,ycoord+42) mins,2
+    PRINT@(xcoord+43,ycoord+42):mins'R%2'
+    BEGIN CASE
+    CASE hrs>24
+*does nothing
+    CASE hrs<0
+*does nothing
+    CASE mins>59
+*does nothing
+    CASE mins<0
+*does nothing
+    CASE 1
+        newTime:=hrs
+        newTime:=":"
+        newTime:=mins
+        newTime=ICONV(newTime,"MT")
+    END CASE
+    PRINT@(xcoord,ycoord+44):"Confirm change (Y/N)?: "
+    INPUT@(xcoord+30,ycoord+44) confirm,1
+    confirm=UPCASE(confirm)
+    IF confirm="Y" THEN
+        INS newTime BEFORE R.TIMESHEET<3,vm>
+        WRITE R.TIMESHEET ON F.TIMESHEET,recordID
+    END
+    RETURN
+
+REMOVETIME:
+    vm=""
+    IF time="" THEN
+        PRINT@(xcoord,ycoord+46):"Error: must select time first."
+        MSLEEP(2500)
+    END ELSE
+        FIND time IN R.TIMESHEET<3> SETTING am,vm ELSE      ;*sets attribute mark (am) and value mark (vm) positions of selected time
+            PRINT@(xcoord,ycoord+46):"Error: time not found in record"
+            MSLEEP(2500)
+        END
+        PRINT@(xcoord,ycoord+44):"Confirm change (Y/N)?: "
+        INPUT@(xcoord+30,ycoord+44) confirm,1
+        confirm=UPCASE(confirm)
+        IF confirm="Y" THEN
+            DEL R.TIMESHEET<3,vm>
+            WRITE R.TIMESHEET ON F.TIMESHEET,recordID
+        END
+    END
+    RETURN
+
+EDITTIME:
+    IF time="" THEN
+        PRINT@(xcoord,ycoord+42):"Error: must select time first."
+        MSLEEP(2500)
+    END ELSE
+        FIND time IN R.TIMESHEET<3> SETTING am,vm THEN      ;*sets attribute mark (am) and value mark (vm) positions of selected time
+            hrs=""
+            mins=""
+            newTime=""
+            confirm=""
+            PRINT@(xcoord+40,ycoord+42):"  :  "
+            PRINT@(xcoord,ycoord+42):"Enter the new Time (00:00-24:00): "
+            INPUT@(xcoord+40,ycoord+42) hrs,2
+            PRINT@(xcoord+40,ycoord+42):hrs'R%2'
+            INPUT@(xcoord+43,ycoord+42) mins,2
+            PRINT@(xcoord+43,ycoord+42):mins'R%2'
+            BEGIN CASE
+            CASE hrs>24
+*does nothing
+            CASE hrs<0
+*does nothing
+            CASE mins>59
+*does nothing
+            CASE mins<0
+*does nothing
+            CASE 1
+                newTime:=hrs
+                newTime:=":"
+                newTime:=mins
+                newTime=ICONV(newTime,"MT")
+            END CASE
+            PRINT@(xcoord,ycoord+44):"Confirm change (Y/N)?: "
+            INPUT@(xcoord+30,ycoord+44) confirm,1
+            confirm=UPCASE(confirm)
+            IF confirm="Y" THEN
+                R.TIMESHEET<3,vm>=newTime
+                WRITE R.TIMESHEET ON F.TIMESHEET,recordID
+            END ELSE
+                PRINT@(xcoord,ycoord+46):"Error: time not found in record"
+                MSLEEP(2500)
+            END
+        END
+
+    END
+    RETURN
+
+PAINTEDITMENU:
+    GOSUB PAINTSUBMENU
+    PRINT@(xcoord,ycoord+33):"Current time selected (00:00-24:00): "
+    PRINT@(xcoord,ycoord+35):"Select an editing option: "
+    PRINT@(xcoord,ycoord+36):"1) Select Time"
+    PRINT@(xcoord,ycoord+37):"2) Add Timein/out"
+    PRINT@(xcoord,ycoord+38):"3) Remove Timein/out"
+    PRINT@(xcoord,ycoord+39):"4) Edit Time"
+    PRINT@(xcoord,ycoord+40):"X) Return to previous menu"
+    PRINT@(xcoord+40,ycoord+33):OCONV(time,"MT")
+    RETURN
+
+
+
+
+
