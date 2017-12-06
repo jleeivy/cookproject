@@ -1,0 +1,53 @@
+* Austin Long
+* 2017-11-08
+* Cook Group Project
+
+    SUBROUTINE TIMELOG(empID)
+    CurrentRecord=""
+
+    EXECUTE "COUNT TIMESHEET" CAPTURING TotalRecords
+    TotalRecords = OCONV(TotalRecords, "MCN")
+    NewRecord = TotalRecords + 1
+    NewRecord = NewRecord'R%7'
+
+    date = DATE()
+    time = TIME()-MOD(TIME(),900)+900
+
+    OPEN 'timesheet' TO F.timesheet ELSE
+        ABORT 201, 'timesheet'
+    END
+
+    R.timesheet = ''
+    query=''
+    query:="SELECT timesheet WITH 1="
+    query:=empID
+    EXECUTE query
+
+    query=''
+    query:="SELECT timesheet WITH 2="
+    query:=DATE()
+    EXECUTE query
+
+    LOOP WHILE READNEXT ID DO
+        READ R.timesheet FROM F.timesheet,ID ELSE
+            R.timesheet= ''
+        END
+        CurrentRecord=ID
+    REPEAT
+
+    IF R.timesheet='' THEN
+        R.timesheet<1>=empID
+        R.timesheet<2>=date
+        R.timesheet<3>=time
+        WRITE R.timesheet ON F.timesheet, NewRecord
+    END ELSE
+        R.timesheet<3,-1>=time
+        WRITE R.timesheet ON F.timesheet, CurrentRecord
+    END
+    PRINT "punch has been logged"
+    MSLEEP(5000)
+
+
+
+
+
