@@ -1,0 +1,22 @@
+* Austin Long
+* 2017-10-25
+* Cook Group Project
+
+    SUBROUTINE CLOCKIN(empID)
+    PROMPT ''
+    OPEN 'employees' TO F.employees ELSE
+        ABORT 201, 'employees'
+    END
+    CRT @(-1) 
+
+    query=''
+    query:="SELECT employees WITH 1="
+    query:=empID
+    EXECUTE query
+    LOOP WHILE READNEXT ID DO
+        READ R.employees FROM F.employees,ID ELSE
+            R.employees=''
+        END
+    REPEAT 
+    CALL TIMELOG(empID)
+    CLOSE F.employees 
