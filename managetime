@@ -68,16 +68,20 @@ PAINTMENU:
     GOSUB PAINTDATA
     RETURN
 
+
 PAINTWEEK:
     PRINT@(xcoord+75,ycoord+2): "MONTH:    ":OCONV(weekArray<1,1>,"DMA")        ;*include "Total Hours Worked"
-    PRINT@(xcoord+75,ycoord+4): OCONV(weekArray<1,1>,"DWA")'L#10':OCONV(weekArray<1,1>,"DD")'L#10':weekArray<1,2>
-    PRINT@(xcoord+75,ycoord+6): OCONV(weekArray<2,1>,"DWA")'L#10':OCONV(weekArray<2,1>,"DD")'L#10':weekArray<2,2>
-    PRINT@(xcoord+75,ycoord+8): OCONV(weekArray<3,1>,"DWA")'L#10':OCONV(weekArray<3,1>,"DD")'L#10':weekArray<3,2>
-    PRINT@(xcoord+75,ycoord+10):OCONV(weekArray<4,1>,"DWA")'L#10':OCONV(weekArray<4,1>,"DD")'L#10':weekArray<4,2>
-    PRINT@(xcoord+75,ycoord+12):OCONV(weekArray<5,1>,"DWA")'L#10':OCONV(weekArray<5,1>,"DD")'L#10':weekArray<5,2>
-    PRINT@(xcoord+75,ycoord+14):OCONV(weekArray<6,1>,"DWA")'L#10':OCONV(weekArray<6,1>,"DD")'L#10':weekArray<6,2>
-    PRINT@(xcoord+75,ycoord+16):OCONV(weekArray<7,1>,"DWA")'L#10':OCONV(weekArray<7,1>,"DD")'L#10':weekArray<7,2>
+    days=DCOUNT(weekArray,CHAR(254)) 
+    FOR i=1 TO days
+        PRINT@(xcoord+75,ycoord+2+2*i):OCONV(weekArray<i,1>,"DWA")'L#10':OCONV(weekArray<i,1>,"DD")'L#10':
+        times=DCOUNT(weekArray,CHAR(254))
+        FOR j=1 TO times
+            PRINT OCONV(weekArray<i,j>,"MTH"):" ":
+        NEXT j
+        PRINT
+    NEXT i
     RETURN
+
 
 DATAARRAY:
     max=DCOUNT(empArray,CHAR(254))
@@ -413,6 +417,10 @@ PAINTEDITMENU:
     PRINT@(xcoord,ycoord+40):"X) Return to previous menu"
     PRINT@(xcoord+40,ycoord+33):OCONV(time,"MT")
     RETURN
+
+
+
+
 
 
 
